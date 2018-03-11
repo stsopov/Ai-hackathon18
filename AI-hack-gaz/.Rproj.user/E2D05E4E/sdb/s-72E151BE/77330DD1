@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "print(seed)\n######\n# CV #\n######\n\nnfolds <- 3\nid <- train.id\npreds.base.train <- data.frame(predict = rep(0, length(id)), id = id, TV = 0)\n\nset.seed(124)\n\nres.list <- list()\nfor (scheme in list(c(32, 32), c(64, 64), c(150, 150), c(228, 228), c(32, 16, 32))) {\n  for (i in 1:nfolds) {\n    id.fold <- which((id %% nfolds + 1) != i)\n    id.cv <- which((id %% nfolds + 1) == i)\n    \n    train <- data.frame(dallFeaturesNN[id.fold,])\n    test <- data.frame(dallFeaturesNN[id.cv, ])\n    \n    train$TV <- as.factor(TV[id.fold])\n    test$TV <- as.factor(TV[id.cv])\n    \n    \n    train.hex <- as.h2o(train)\n    test.hex <- as.h2o(test)\n    \n    predictors <- 1:(ncol(train.hex)-1)\n    response <- ncol(train.hex)\n    \n    print(i)\n    model <- h2o.deeplearning(x=predictors,\n                              y=response,\n                              training_frame = train.hex,\n                              activation=\"RectifierWithDropout\",\n                              hidden= scheme,\n                              input_dropout_ratio=0.07,\n                              epochs=10,\n                              l1=5e-05,\n                              l2=1e-3,\n                              rho=0.99,\n                              epsilon=1e-8,\n                              stopping_metric = \"AUC\",\n                              max_w2=5,\n                              reproducible = T,\n                              seed=seed)\n    \n    preds <- as.data.frame(h2o.predict(model,test.hex))$p1\n    print(getROC_AUC(preds, TV[id.cv])$auc)\n    \n    preds.base.train$predict[id.cv] <- preds\n    preds.base.train$TV[id.cv] <- TV[id.cv]\n  }\n  \n  train.preds <- preds.base.train$predict\n  final.res <- getROC_AUC(preds.base.train$predict,preds.base.train$TV)$auc\n  \n  res.list[[length(res.list) + 1]] <- data.frame(scheme = scheme[1], len = length(scheme), score = final.res)\n}\n\n",
+    "created" : 1520752452300.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "13|23|52|2|\n",
+    "hash" : "2325234412",
+    "id" : "77330DD1",
+    "lastKnownWriteTime" : 7596484193276666483,
+    "last_content_update" : 1520753489496,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "source_window_id" : "wtqy9r2zok07r",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

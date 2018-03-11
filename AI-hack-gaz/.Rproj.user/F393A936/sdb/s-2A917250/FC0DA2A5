@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(data.table)\nlibrary(dplyr)\nlibrary(xgboost)\nlibrary(textir)\n\n\ntrain_data <- fread(\"Data/raw/train_data.csv\", sep = \",\", stringsAsFactors = F)\ntest_data <- fread(\"Data/raw/test_data.csv\", sep = \",\", stringsAsFactors = F)\n\ndall <- rbind(train_data, test_data)\ndall$V1 <- NULL\ndall$id_trans <- 1:nrow(dall)\n\ndall$month <- paste0(substr(dall$date, 1, 8), \"01\")\n\n# проставляем лейблы\nuser.labels <- unique(dall[dall$sum_b > 0, c(\"id\", \"month\"), with = F])\nuser.labels <- user.labels[order(user.labels$id, user.labels$month),]\nuser.labels[, next_month := shift(month, 1L, type = \"lead\"), by = \"id\"]\nuser.labels$month_diff <- as.numeric(difftime(user.labels$next_month, user.labels$month, units = \"days\"))\nuser.labels$TV <- as.numeric(user.labels$month_diff <= 31)\nuser.labels$TV[is.na(user.labels$TV)] <- 0\nuser.labels$key <- paste0(user.labels$id, user.labels$month)\n\ntest.labels <- user.labels[user.labels$id %in% test_data$id,] %>% group_by_(.dots = \"id\") %>% \n  summarize(max_month = max(month))\ntest.labels$key <- paste0(test.labels$id, test.labels$max_month)\n\n\nuser.labels$is_test <- as.numeric(user.labels$key %in% test.labels$key)\nuser.labels$key <- NULL\n\n\nmonths <- sort(unique(user.labels$month))\n\nz <- c();\nfor (m in months) {\n  z <- c(z, sum(1 - mean(user.labels$TV[user.labels$month == m & user.labels$is_test == 0])))\n}\nplot.ts(z)\n\nall.month.window.stat <- list()\n# get all stat\nfor (m in months) {\n  print(m)\n  transaction.pars <- dall[dall$month <= m,]\n  transaction.pars <- transaction.pars[transaction.pars$id %in% user.labels$id[user.labels$month == m],]\n  \n  transaction.pars$first_prch <- paste0(\"20\", substr(transaction.pars$first_prch, 7, 8), \"-\",\n                                        substr(transaction.pars$first_prch, 4, 5), \"-\",\n                                        substr(transaction.pars$first_prch, 1, 2))\n  \n  transaction.pars$first_p_month <- paste0(substr(transaction.pars$first_prch, 1, 8), \"01\")\n  \n  stat_all_time <- transaction.pars %>% group_by_(.dots = \"id\") %>% summarize(\n    n_transactions = length(unique(id_trans)),\n    n_month_was = length(unique(month)),\n    \n    sum_volume = sum(v_l),\n    average_volume = mean(v_l),\n    min_volume = min(v_l),\n    max_volume = max(v_l),\n    \n    sum_q = sum(q),\n    average_q = mean(q),\n    min_q = min(q),\n    max_q = max(q),\n    \n    sum_b = sum(sum_b),\n    average_b = mean(sum_b),\n    min_b = min(sum_b),\n    max_b = max(sum_b),\n    \n    sum_percent = sum(percent),\n    average_percent = mean(percent),\n    min_percent = min(percent),\n    max_percent = max(percent),\n    \n    n_azs = length(unique(code_azs)),\n    n_location = length(unique(location)),\n    n_region = length(unique(region)),\n    n_code = length(unique(code)),\n    n_code1 = length(unique(code1)),\n    n_types = length(unique(type)),\n    \n    f_month = min(first_p_month)\n    \n    # n_transactions_these_month = length(unique(id_trans[month == m])),\n  )\n  \n  stat$month <- m\n  stat$days_passed_after_fisrt_p <- as.numeric(difftime(stat$month, stat$f_month, units = \"days\"))\n  \n  all.month.window.stat[[length(all.month.window.stat) + 1]] <- stat\n}\n\nall.stat <- rbindlist(all.month.window.stat)\n\nall.stat <- merge(all.stat, user.labels, by = c(\"id\", \"month\"))\nall.stat <- all.stat[all.stat$month != '2017-12-01',]\n\nTV <- all.stat$TV\ndallFeatures <- all.stat\n  \ndallFeatures[, c(\"month\", \"id\", \"f_month\", \"next_month\", \"is_test\")] <- NULL\n\ntrain.id <- which(all.stat$is_test == 0 & all.stat$month >= '2017-09-01')\ntest.id <- which(all.stat$is_test == 1 & all.stat$month >= '2017-09-01')\n",
+    "created" : 1520621340633.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1178385723",
+    "id" : "FC0DA2A5",
+    "lastKnownWriteTime" : 1520639034,
+    "last_content_update" : 1520639034470,
+    "path" : "~/Documents/rproj/AI-hack-gaz/Code/R/0_preparing.R",
+    "project_path" : "Code/R/0_preparing.R",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

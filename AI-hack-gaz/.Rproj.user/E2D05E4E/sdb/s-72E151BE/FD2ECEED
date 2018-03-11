@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "# learn xgboost\n\ndtrain <- xgb.DMatrix(data = as.matrix(dallFeatures[train.id, ]), label = TV[train.id])\n\n#5 5 0.9 0.7 0.5379335\nparam <- list(  objective           = \"binary:logistic\",\n                eval_metric = \"auc\",\n                booster = \"gbtree\",\n                eta                 = 0.03, # 0.06, #0.01,\n                max_depth           = 3, #changed from default of 8\\ best 3 \n                gamma = 0,\n                min_child_weight = 5,\n                max_delta_step = 0,\n                #subsample = 0.9,\n                colsample_bytree = 0.9,\n                reg_alpha = 5,\n                silent = 1,\n                nthread = 8\n)\n\n\nwatchlist <- list(train = dtrain)\n\nresults.cv <- c()\n#for(seed in c(12471, 123, 125412)) {\nfor(seed in c(1241271)) {\n  set.seed(seed)\n  \n  clf <- xgb.cv(   params              = param,\n                   data                = dtrain,\n                   nrounds             = 2000, #- 180\n                   verbose             = 1,\n                   early.stop.round    = 150,\n                   watchlist           = watchlist,\n                   maximize            = T,\n                   nfold = 5\n  )\n  \n  res.fold <- max(clf$evaluation_log$test_auc_mean)\n  print(res.fold)\n  n_iter <- which.max(clf$evaluation_log$test_auc_mean)\n  \n  results.cv <- c(results.cv, res.fold)\n}\n\nprint(results.cv)\nprint(mean(results.cv))\n\n#print(results.cv)\n#[1] 0.5375231 0.5376729 0.5375666\n#> print(mean(results.cv))\n#[1] 0.5375875\n\n\nif(T) {\n  set.seed(12471)\n  clf.train <- xgb.train(   params              = param,\n                            data                = dtrain,\n                            nrounds             = n_iter,\n                            verbose             = 1\n  )\n  \n  imp.base <- xgb.importance(clf.train, feature_names = colnames(dallFeatures))\n  View(imp.base)\n}\n",
+    "created" : 1520776067525.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2245982744",
+    "id" : "FD2ECEED",
+    "lastKnownWriteTime" : 1520779716,
+    "last_content_update" : 1520779716145,
+    "path" : "~/TEMP/AI-hack-gaz/Code/R/*_xgb_single.R",
+    "project_path" : "Code/R/*_xgb_single.R",
+    "properties" : {
+        "source_window_id" : ""
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

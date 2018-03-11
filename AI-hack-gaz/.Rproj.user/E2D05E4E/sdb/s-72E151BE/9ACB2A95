@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "# make predict to test\n\nfeatures.test <- dallFeatures[test.id,]\ndtest <- xgb.DMatrix(data = as.matrix(features.test))\n\nxgb.predict <- predict(clf.train, dtest)\n\npred.base <- data.frame(id = id[test.id], proba = xgb.predict)\n\nsubmission.name = \"xgb_submission\"\nwrite.csv(pred.base, paste0(\"Results/\", submission.name, \".csv\"), row.names = F,quote = F)\n",
+    "created" : 1520778930292.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2567088187",
+    "id" : "9ACB2A95",
+    "lastKnownWriteTime" : 1520779716,
+    "last_content_update" : 1520779716677,
+    "path" : "~/TEMP/AI-hack-gaz/Code/R/*_xgb_predict.R",
+    "project_path" : "Code/R/*_xgb_predict.R",
+    "properties" : {
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "library(data.table)\nlibrary(dplyr)\nlibrary(xgboost)\nlibrary(textir)\n\n\n# preparing data\nsource(\"Code/R/0_preparing.R\")\n\n# get features for all time\nsource(\"Code/R/1_get_features.R\")\n\n# get features for this month\nsource(\"Code/R/1_get_features_this_month.R\")\n\n# get features for this month last year\nsource(\"Code/R/1_get_features_last_year.R\")\n\n# merge all features\nsource(\"Code/R/1_final_feature_engineering.R\")\n\n# xgboost learn\nsource(\"Code/R/*_xgb_single.R\")\n\n# predict to test and make submission\nsource(\"Code/R/*_xgb_predict.R\")",
+    "created" : 1520779238216.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3572404176",
+    "id" : "E46EB581",
+    "lastKnownWriteTime" : 1520779565,
+    "last_content_update" : 1520779565812,
+    "path" : "~/TEMP/AI-hack-gaz/Code/R/*_main.R",
+    "project_path" : "Code/R/*_main.R",
+    "properties" : {
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

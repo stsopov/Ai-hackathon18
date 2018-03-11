@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "library(data.table)\nlibrary(dplyr)\nlibrary(xgboost)\nlibrary(textir)\n\n\ntrain_data <- fread(\"Data/raw/train_data.csv\", sep = \",\", stringsAsFactors = F)\ntest_data <- fread(\"Data/raw/test_data.csv\", sep = \",\", stringsAsFactors = F)\n\ndall <- rbind(train_data, test_data)\ndall$V1 <- NULL\ndall$id_trans <- 1:nrow(dall)\n\ndall$month <- paste0(substr(dall$date, 1, 8), \"01\")\ndall <- dall[!is.na(dall$sum_b),]\n\n# некоторая чистка данных\ndall <- dall[-which(dall$percent == 0 & dall$sum_b == 0),]\n\ndall$code_azs[is.na(dall$code_azs)] <- 99999\ndall$region[is.na(dall$region)] <- 469\ndall$percent[is.na(dall$percent)] <- 0\ndall$code1[is.na(dall$code1)] <- 0\ndall$location[is.na(dall$location)] <- 0\ndall <- dall[dall$q >= 0 & dall$sum_b >= 0 & dall$v_l >= 0 & dall$percent >= 0,]\n\n# проставляем лейблы\nuser.labels <- unique(dall[dall$sum_b > 0, c(\"id\", \"month\"), with = F])\nuser.labels <- user.labels[order(user.labels$id, user.labels$month),]\nuser.labels[, next_month := shift(month, 1L, type = \"lead\"), by = \"id\"]\nuser.labels$month_diff <- as.numeric(difftime(user.labels$next_month, user.labels$month, units = \"days\"))\nuser.labels$TV <- as.numeric(user.labels$month_diff <= 31)\nuser.labels$TV[is.na(user.labels$TV)] <- 0\nuser.labels$key <- paste0(user.labels$id, user.labels$month)\n\ntest.labels <- user.labels[user.labels$id %in% test_data$id,] %>% group_by_(.dots = \"id\") %>% \n  summarize(max_month = max(month))\ntest.labels$key <- paste0(test.labels$id, test.labels$max_month)\n\n\nuser.labels$is_test <- as.numeric(user.labels$key %in% test.labels$key)\nuser.labels$key <- NULL\n\nsave(dall, file = \"Data/prepared/dall\")\nsave(user.labels, file = \"Data/prepared/user_labels\")\n",
+    "created" : 1520753646919.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3745491961",
+    "id" : "415DAB19",
+    "lastKnownWriteTime" : 1520696264,
+    "last_content_update" : 1520696264,
+    "path" : "~/TEMP/AI-hack-gaz/Code/R/0_preparing.R",
+    "project_path" : "Code/R/0_preparing.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
